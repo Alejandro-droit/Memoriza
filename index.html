@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Match - Juego de Cartas Educativo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 800px;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header {
+            margin-bottom: 25px;
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+        
+        .theme-selector {
+            margin-bottom: 20px;
+        }
+        
+        .theme-selector label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .theme-selector select {
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 1rem;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .theme-selector select:hover {
+            border-color: #ff6b6b;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #ff6b6b;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+        
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+            perspective: 1000px;
+        }
+        
+        .card {
+            height: 120px; /* Aumentado de 100px a 120px para más espacio */
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            position: relative;
+        }
+        
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+        
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3.5rem; /* Aumentado significativamente para que los íconos sean más grandes */
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            /* Añadido padding interno para evitar que los íconos toquen los bordes */
+            padding: 10px;
+        }
+        
+        .card-front {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: rotateY(180deg);
+        }
+        
+        .card-back {
+            background: linear-gradient(45deg, #ff9a9e 0%, #fad0c4 100%);
+            color: #2c3e50;
+            font-size: 2.8rem; /* También aumentado el tamaño del signo de interrogación */
+        }
+        
+        .matched .card-front {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            transform: rotateY(180deg);
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .restart-btn {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            color: white;
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .color-btn {
+            background: linear-gradient(45deg, #9c27b0, #673ab7);
+            color: white;
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        }
+        
+        .difficulty {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .difficulty-btn {
+            padding: 8px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 20px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .difficulty-btn.active {
+            background: #ff6b6b;
+            color: white;
+            border-color: #ff6b6b;
+        }
+        
+        .message {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin: 20px 0;
+            min-height: 30px;
+            color: #27ae60;
+        }
+        
+        @media (max-width: 600px) {
+            .game-board {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+            }
+            
+            .card {
+                height: 100px; /* Ajustado para pantallas pequeñas */
+            }
+            
+            .card-face {
+                font-size: 2.8rem; /* Ajustado para pantallas pequeñas */
+            }
+            
+            .card-back {
+                font-size: 2.2rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            .theme-selector select {
+                width: 100%;
+                max-width: 300px;
+                margin: 0 auto;
+            }
+        }
+        
+        @media (max-width: 400px) {
+            .game-board {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .card {
+                height: 90px;
+            }
+            
+            .card-face {
+                font-size: 2.5rem;
+            }
+            
+            .card-back {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>Memory Match</h1>
+            <p>¡Encuentra las parejas de cartas! Mejora tu memoria y concentración.</p>
+        </div>
+        
+        <!-- Selector de temas con menú desplegable -->
+        <div class="theme-selector">
+            <label for="theme-select">Selecciona un tema:</label>
+            <select id="theme-select">
+                <option value="fruits">🍎 Frutas</option>
+                <option value="animals">🦁 Animales</option>
+                <option value="colors">🎨 Colores</option>
+                <option value="emojis">😊 Emojis</option>
+            </select>
+        </div>
+        
+        <div class="difficulty">
+            <button class="difficulty-btn active" data-cards="8">Fácil (8 cartas)</button>
+            <button class="difficulty-btn" data-cards="12">Medio (12 cartas)</button>
+            <button class="difficulty-btn" data-cards="16">Difícil (16 cartas)</button>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-value" id="moves">0</div>
+                <div class="stat-label">Movimientos</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="matches">0</div>
+                <div class="stat-label">Parejas</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="time">0</div>
+                <div class="stat-label">Segundos</div>
+            </div>
+        </div>
+        
+        <div class="game-board" id="game-board">
+            <!-- Las cartas se generarán dinámicamente -->
+        </div>
+        
+        <div class="message" id="message"></div>
+        
+        <div class="controls">
+            <button class="btn restart-btn" id="restart-btn">Reiniciar Juego</button>
+            <button class="btn color-btn" id="color-btn">🎨 Cambiar Colores</button>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Clase principal del juego Memory Match
+         * Este juego educativo ayuda a los estudiantes a mejorar su memoria y concentración
+         * mediante la búsqueda de parejas de cartas idénticas.
+         */
+        class MemoryGame {
+            constructor() {
+                // Variables del juego
+                this.cards = [];                    // Array que almacena todas las cartas del juego
+                this.flippedCards = [];            // Array que almacena las cartas actualmente volteadas
+                this.matchedPairs = 0;             // Contador de parejas encontradas
+                this.moves = 0;                    // Contador de movimientos realizados
+                this.totalPairs = 4;               // Número total de parejas (depende de la dificultad)
+                this.gameStarted = false;          // Bandera para saber si el juego ha comenzado
+                this.timer = null;                 // Referencia al temporizador
+                this.seconds = 0;                  // Contador de segundos
+                this.selectedDifficulty = 8;       // Número de cartas seleccionadas (8, 12 o 16)
+                this.selectedTheme = 'fruits';     // Tema seleccionado para las cartas
+                
+                // Diccionario de temas con sus respectivos símbolos/emojis
+                this.themes = {
+                    fruits: ['🍎', '🍌', '🍒', '🍇', '🍊', '🍓', '🍑', '🍍', '🥝', '🍉', '🍋', '🥭', '🥥', '🍈', '🍐', '🍏'],
+                    animals: ['🦁', '🐯', '🐘', '🦒', '🦓', '🐵', '🦊', '🐻', '🐼', '🐨', '🐮', '🐷', '🐸', '🦉', '🐧', '🦆'],
+                    colors: ['🔴', '🔵', '🟢', '🟡', '🟠', '🟣', '🟤', '⚫', '⚪', '🟠', '🟣', '🟤', '🔴', '🔵', '🟢', '🟡'],
+                    emojis: ['😊', '😂', '😍', '🥰', '😎', '🤩', '🥳', '😭', '😡', '🤯', '🥶', '😱', '👻', '👾', '🤖', '👋']
+                };
+                
+                // Inicializar elementos del DOM y eventos
+                this.initializeElements();
+                this.bindEvents();
+                this.initializeGame();
+            }
+            
+            /**
+             * Inicializa las referencias a los elementos HTML del DOM
+             */
+            initializeElements() {
+                this.gameBoard = document.getElementById('game-board');
+                this.movesElement = document.getElementById('moves');
+                this.matchesElement = document.getElementById('matches');
+                this.timeElement = document.getElementById('time');
+                this.messageElement = document.getElementById('message');
+                this.restartBtn = document.getElementById('restart-btn');
+                this.colorBtn = document.getElementById('color-btn');
+                this.difficultyBtns = document.querySelectorAll('.difficulty-btn');
+                this.themeSelect = document.getElementById('theme-select');
+            }
+            
+            /**
+             * Vincula los eventos de los botones con sus respectivas funciones
+             */
+            bindEvents() {
+                // Evento para reiniciar el juego
+                this.restartBtn.addEventListener('click', () => this.initializeGame());
+                
+                // Evento para cambiar los colores del juego
+                this.colorBtn.addEventListener('click', () => this.changeColors());
+                
+                // Evento para cambiar el tema
+                this.themeSelect.addEventListener('change', (e) => {
+                    this.selectedTheme = e.target.value;
+                    this.initializeGame();
+                });
+                
+                // Eventos para cambiar la dificultad
+                this.difficultyBtns.forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        // Remover la clase 'active' de todos los botones
+                        this.difficultyBtns.forEach(b => b.classList.remove('active'));
+                        // Agregar la clase 'active' al botón clickeado
+                        e.target.classList.add('active');
+                        // Actualizar la dificultad seleccionada
+                        this.selectedDifficulty = parseInt(e.target.dataset.cards);
+                        // Reiniciar el juego con la nueva dificultad
+                        this.initializeGame();
+                    });
+                });
+            }
+            
+            /**
+             * Inicializa un nuevo juego con los parámetros actuales
+             */
+            initializeGame() {
+                // Detener el temporizador si está corriendo
+                if (this.timer) {
+                    clearInterval(this.timer);
+                    this.timer = null;
+                }
+                
+                // Reiniciar todas las variables del juego
+                this.flippedCards = [];
+                this.matchedPairs = 0;
+                this.moves = 0;
+                this.seconds = 0;
+                this.gameStarted = false;
+                this.totalPairs = this.selectedDifficulty / 2;
+                
+                // Actualizar la interfaz de usuario
+                this.updateStats();
+                this.messageElement.textContent = '';
+                
+                // Crear las cartas para el nuevo juego
+                this.createCards();
+            }
+            
+            /**
+             * Crea y configura todas las cartas del juego
+             */
+            createCards() {
+                // Limpiar el tablero de juego
+                this.gameBoard.innerHTML = '';
+                
+                // Determinar el número de columnas según la dificultad y el tamaño de pantalla
+                let columns = 4;
+                if (this.selectedDifficulty === 8) columns = 4;
+                else if (this.selectedDifficulty === 12) columns = 4;
+                else if (this.selectedDifficulty === 16) columns = 4;
+                
+                // Ajustar columnas para pantallas pequeñas
+                if (window.innerWidth < 600) {
+                    columns = this.selectedDifficulty <= 8 ? 3 : 4;
+                    if (this.selectedDifficulty === 16 && window.innerWidth < 400) {
+                        columns = 2;
+                    }
+                }
+                
+                // Configurar el layout del tablero
+                this.gameBoard.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+                
+                // Obtener los símbolos del tema seleccionado
+                const themeSymbols = this.themes[this.selectedTheme];
+                
+                // Seleccionar los símbolos necesarios para el juego actual
+                const gameSymbols = themeSymbols.slice(0, this.totalPairs);
+                // Crear pares de símbolos (duplicar el array)
+                const cardValues = [...gameSymbols, ...gameSymbols];
+                
+                // Mezclar aleatoriamente las cartas
+                this.shuffleArray(cardValues);
+                
+                // Crear cada carta individualmente
+                this.cards = cardValues.map((symbol, index) => {
+                    // Crear el elemento div para la carta
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.dataset.value = symbol;  // Almacenar el valor de la carta
+                    card.dataset.index = index;   // Almacenar el índice de la carta
+                    
+                    // Crear la cara frontal de la carta (con el símbolo)
+                    const front = document.createElement('div');
+                    front.className = 'card-face card-front';
+                    front.textContent = symbol;
+                    
+                    // Crear la cara trasera de la carta (oculta)
+                    const back = document.createElement('div');
+                    back.className = 'card-face card-back';
+                    back.innerHTML = '❓';
+                    
+                    // Añadir ambas caras a la carta
+                    card.appendChild(front);
+                    card.appendChild(back);
+                    
+                    // Añadir evento de clic a la carta
+                    card.addEventListener('click', () => this.flipCard(card));
+                    
+                    // Añadir la carta al tablero de juego
+                    this.gameBoard.appendChild(card);
+                    return card;
+                });
+            }
+            
+            /**
+             * Algoritmo de mezcla de Fisher-Yates para barajar arrays
+             * @param {Array} array - Array a mezclar
+             */
+            shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+            }
+            
+            /**
+             * Voltea una carta cuando se hace clic en ella
+             * @param {HTMLElement} card - Elemento de la carta a voltear
+             */
+            flipCard(card) {
+                // Validaciones para evitar comportamientos no deseados
+                if (this.flippedCards.length >= 2 || 
+                    card.classList.contains('matched') || 
+                    card.classList.contains('flipped')) {
+                    return;
+                }
+                
+                // Iniciar el juego y el temporizador en el primer movimiento
+                if (!this.gameStarted) {
+                    this.gameStarted = true;
+                    this.startTimer();
+                }
+                
+                // Voltear la carta y añadirla al array de cartas volteadas
+                card.classList.add('flipped');
+                this.flippedCards.push(card);
+                
+                // Verificar si se han volteado dos cartas
+                if (this.flippedCards.length === 2) {
+                    this.moves++;
+                    this.updateStats();
+                    this.checkMatch();
+                }
+            }
+            
+            /**
+             * Verifica si las dos cartas volteadas forman una pareja
+             */
+            checkMatch() {
+                const [card1, card2] = this.flippedCards;
+                const isMatch = card1.dataset.value === card2.dataset.value;
+                
+                if (isMatch) {
+                    // Si es una pareja correcta
+                    card1.classList.add('matched');
+                    card2.classList.add('matched');
+                    this.matchedPairs++;
+                    this.updateStats();
+                    
+                    // Verificar si el juego ha terminado
+                    if (this.matchedPairs === this.totalPairs) {
+                        this.endGame();
+                    }
+                    
+                    // Limpiar el array de cartas volteadas
+                    this.flippedCards = [];
+                } else {
+                    // Si no es una pareja, voltear las cartas de nuevo después de 1 segundo
+                    setTimeout(() => {
+                        card1.classList.remove('flipped');
+                        card2.classList.remove('flipped');
+                        this.flippedCards = [];
+                    }, 1000);
+                }
+            }
+            
+            /**
+             * Inicia el temporizador del juego
+             */
+            startTimer() {
+                this.timer = setInterval(() => {
+                    this.seconds++;
+                    this.updateStats();
+                }, 1000);
+            }
+            
+            /**
+             * Actualiza los contadores en la interfaz de usuario
+             */
+            updateStats() {
+                this.movesElement.textContent = this.moves;
+                this.matchesElement.textContent = this.matchedPairs;
+                this.timeElement.textContent = this.seconds;
+            }
+            
+            /**
+             * Finaliza el juego y muestra el mensaje de finalización
+             */
+            endGame() {
+                clearInterval(this.timer);
+                this.timer = null;
+                
+                // Calcular una puntuación basada en movimientos y tiempo
+                const score = Math.max(0, 1000 - (this.moves * 10) - this.seconds);
+                const message = `¡Felicidades! 🎉\nCompletaste el juego en ${this.seconds} segundos con ${this.moves} movimientos.\nPuntuación: ${score}`;
+                
+                // Mostrar el mensaje de finalización
+                this.messageElement.innerHTML = message.replace('\n', '<br>');
+            }
+            
+            /**
+             * Cambia los colores del juego de forma aleatoria
+             * Genera nuevos gradientes para el fondo y las cartas
+             */
+            changeColors() {
+                // Definir paletas de colores disponibles
+                const colorPalettes = [
+                    ['#ff6b6b', '#4ecdc4'], // Rojo - Turquesa
+                    ['#667eea', '#764ba2'], // Azul - Púrpura
+                    ['#ff9a9e', '#fad0c4'], // Rosa - Beige
+                    ['#a1c4fd', '#c2e9fb'], // Azul claro - Celeste
+                    ['#ffecd2', '#fcb69f'], // Naranja claro - Naranja
+                    ['#84fab0', '#8fd3f4'], // Verde - Azul claro
+                    ['#d4fc79', '#96e6a1'], // Verde limón - Verde
+                    ['#f093fb', '#f5576c'], // Rosa - Rojo
+                    ['#4facfe', '#00f2fe'], // Azul - Cian
+                    ['#43e97b', '#38f9d7']  // Verde - Turquesa
+                ];
+                
+                // Seleccionar una paleta aleatoria
+                const randomPalette = colorPalettes[Math.floor(Math.random() * colorPalettes.length)];
+                const [color1, color2] = randomPalette;
+                
+                // Aplicar nuevos colores al cuerpo (fondo del juego)
+                document.body.style.background = `linear-gradient(135deg, ${color1} 0%, ${color2} 100%)`;
+                
+                // Aplicar nuevos colores al título
+                const header = document.querySelector('.header h1');
+                header.style.background = `linear-gradient(45deg, ${color1}, ${color2})`;
+                header.style.webkitBackgroundClip = 'text';
+                header.style.webkitTextFillColor = 'transparent';
+                header.style.backgroundClip = 'text';
+                
+                // Aplicar nuevos colores a los botones
+                const restartBtn = document.querySelector('.restart-btn');
+                restartBtn.style.background = `linear-gradient(45deg, ${color1}, ${color2})`;
+                
+                // Aplicar nuevos colores a las cartas (cara trasera)
+                const cardBacks = document.querySelectorAll('.card-back');
+                cardBacks.forEach(cardBack => {
+                    cardBack.style.background = `linear-gradient(45deg, ${color1}, ${color2})`;
+                });
+                
+                // Aplicar nuevos colores a las estadísticas
+                const statValues = document.querySelectorAll('.stat-value');
+                statValues.forEach(stat => {
+                    stat.style.color = color1;
+                });
+            }
+        }
+        
+        /**
+         * Inicializa el juego cuando la página termina de cargar
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+            new MemoryGame();
+        });
+    </script>
+</body>
+</html>
